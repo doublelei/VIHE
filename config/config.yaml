@@ -1,0 +1,43 @@
+defaults:
+  - agent: peract
+with_eval: false
+exp_id: "test"
+tasks: ["close_jar"]
+device: [0]
+epochs: 20
+num_workers: 0
+num_demo: 1
+sample_distribution_mode: "transition_uniform"
+replay_buffer_sample: "uniform"
+train_replay_dir: "/mnt/data/yutian/RVT/replay/replay_train_tem"
+log_dir: "runs"
+
+dataset:
+  cameras: ["front", "left_shoulder", "right_shoulder", "wrist"]
+  batch_size: 1
+  voxel_size: [100]
+  timesteps: 1
+  image_size: [128, 128]
+  rot_and_grip_indicies_size: 4
+  trans_indicies_size: 3
+  gripper_pose_size: 7
+  ignore_collisions_size: 1
+  max_token_seq_len: 77
+  lang_feat_dim: 1024
+  lang_emb_dim: 512
+  low_dim_state: 4
+  disk_saving: True
+  replay_capacity: 1000000
+  train_replay_dir: "/mnt/data/yutian/RVT/replay/replay_train_tem"
+  eposides_folder_train: "/mnt/data/yutian/peract/train/{}/all_variations/episodes"
+  eposides_folder_test: "/mnt/data/yutian/peract/test/{}/all_variations/episodes"
+  num_demos: 10
+  keypoint_method: 'heuristic'
+  replay_buffer_sample_policy: 'uniform'
+  replay_buffer_sample_freq: 10
+  demo_augmentation: True
+  num_workers: 3
+  sample_distribution_mode: 'task_uniform'
+  scene_bounds: [-0.3, -0.5, 0.6, 0.7, 0.5, 1.6]
+  rotation_resolution: 5
+  refresh_replay: False

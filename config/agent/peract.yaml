@@ -1,0 +1,21 @@
+# @package _group_
+name: "peract"
+variant: "base"
+
+lambda_weight_l2: 1e-6
+lr: 2.5e-5
+optimizer_type: "lamb"
+warmup_steps: 0
+lr_cos_dec: false
+add_rgc_loss: true
+num_rotation_classes: 72
+task_breakdown: false
+transform_augmentation: true
+transform_augmentation_xyz:
+  - 0.1
+  - 0.1
+  - 0.1
+transform_augmentation_rpy:
+  - 0.0
+  - 0.0
+  - 20.0
