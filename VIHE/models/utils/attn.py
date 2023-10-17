@@ -1,7 +1,3 @@
-# Copyright (c) 2022-2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
-#
-# Licensed under the NVIDIA Source Code License [see LICENSE for details].
-
 # Sources:
 # https://github.com/lucidrains/perceiver-pytorch/blob/main/perceiver_pytorch/perceiver_io.py
 # https://github.com/peract/peract/blob/main/helpers/network_utils.py

@@ -2,6 +2,9 @@
 name: "vihe"
 variant: "base"
 resume: ""
+
+model_path: "/mnt/home/yutian/VLM/RVT/rvt/runs/20/rvtpp_real_real_all_step10/rot_offset/real_all/models/model_50.pth"
+
 add_depth: true
 add_proprio: true
 add_lang: true
@@ -24,7 +27,7 @@ feat_dim: 220
 proprio_dim: 4
 img_feat_dim: 3
 depth: 8
-attn_dim_head: 64
+attn_dim_head: 60
 img_aug: 0.1
 gt_hm_sigma: 1.5
 add_rgc_loss: true

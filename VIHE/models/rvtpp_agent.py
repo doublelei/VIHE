@@ -9,11 +9,12 @@ import numpy as np
 import torch.nn as nn
 import cv2
 import math
-from pytorch3d import transforms as torch3d_tf
 import clip
+from pytorch3d import transforms as torch3d_tf
 from scipy.spatial.transform import Rotation
 from torch.nn.parallel.distributed import DistributedDataParallel
 from torch.optim.lr_scheduler import CosineAnnealingLR
+
 from yarr.agents.agent import ActResult
 
 import VIHE.models.utils.utils as utils
@@ -499,7 +500,7 @@ class RVTPPAgent:
         network: nn.Module,
         cameras,
         scene_bounds,
-        cos_dec_max_step,
+        cos_dec_max_step=60000,
     ):
         self.cfg = cfg
 
@@ -973,71 +974,44 @@ class RVTPPAgent:
     ) -> ActResult:
         # print(self.cfg.add_lang)
         if self.cfg.add_lang:
-            if self.task_breakdown:
-                if self.lang_goal_embs is None:
-                    lang_goal_tokens = observation.get(
-                        "lang_goal_tokens", None).cpu().numpy()[0]
-                    lang_goal_tokens_hash = hash_array(lang_goal_tokens)
-                    self.lang_goal_hashes = self.meta['subtasks_hash'][lang_goal_tokens_hash]
-                    self.step = 0
-                    lang_goal_embs = torch.tensor(
-                        self.meta['embbding'][self.lang_goal_hashes[step]]).float().to(self._device)
-                    self.lang_goal_embs = lang_goal_embs
-                else:
-                    lang_goal_embs = self.lang_goal_embs
-            else:
-                if observation.get("lang_goal_tokens", None) is not None:
-                    lang_goal_tokens = observation.get(
-                        "lang_goal_tokens", None).long()
-                    _, lang_goal_embs = _clip_encode_text(
-                        self.clip_model, lang_goal_tokens[0])
-                    lang_goal_embs = lang_goal_embs.float()
-                elif observation.get("lang_goal") is not None:
-                    # print(123)
-                    lang_goal = observation.get("lang_goal", None)
-                    lang_goal_tokens = clip.tokenize(
-                        [lang_goal]).to(self._device)
-                    _, lang_goal_embs = _clip_encode_text(
-                        self.clip_model, lang_goal_tokens)
-                    lang_goal_embs = lang_goal_embs.float()
+            if observation.get("lang_goal_tokens", None) is not None:
+                lang_goal_tokens = observation.get(
+                    "lang_goal_tokens", None).long()
+                _, lang_goal_embs = _clip_encode_text(
+                    self.clip_model, lang_goal_tokens[0])
+                lang_goal_embs = lang_goal_embs.float()
+            elif observation.get("lang_goal") is not None:
+                lang_goal = observation.get("lang_goal", None)
+                lang_goal_tokens = clip.tokenize(
+                    [lang_goal]).to(self._device)
+                _, lang_goal_embs = _clip_encode_text(
+                    self.clip_model, lang_goal_tokens)
+                lang_goal_embs = lang_goal_embs.float()
         else:
             lang_goal_embs = (
                 torch.zeros(observation["lang_goal_embs"].shape)
                 .float()
                 .to(self._device)
             )
-        # print(lang_goal_embs)
-        proprio = arm_utils.stack_on_channel(observation["low_dim_state"])
-        # obs, pcd = peract_utils._preprocess_inputs(obs, agent.cameras)
-        obs, pcd = peract_utils._preprocess_inputs(observation, self.cameras)
-        # import pdb; pdb.set_trace()
-        # print(obs[0][0].shape, pcd[0].shape)
-        # pc, img_feat = rvt_utils.get_pc_img_feat(obs, pcd)
-        pc, img_feat = pcd[0], obs[0][0]
-        pc, img_feat = rvt_utils.move_pc_in_bound(
-            pc, img_feat, self.scene_bounds, no_op=not self.move_pc_in_bound)
+
+        proprio = utils.stack_on_channel(observation["low_dim_state"])
+        obs, pcd = utils._preprocess_inputs(observation, self.cameras)
+        pc, img_feat = utils.get_pc_img_feat(obs, pcd)
+        pc, img_feat = utils.move_pc_in_bound(
+            pc, img_feat, self.scene_bounds, no_op=not self.cfg.move_pc_in_bound)
         pc = [p.to(self._device).float() for p in pc]
         img_feat = [i.to(self._device).float() for i in img_feat]
         proprio = proprio.to(self._device).float()
 
-        # obs, pcd = peract_utils._preprocess_inputs(observation, self.cameras)
-        # pc, img_feat = rvt_utils.get_pc_img_feat(
-        #     obs,
-        #     pcd,
-        # )
-
-        # pc, img_feat = rvt_utils.move_pc_in_bound(
-        #     pc, img_feat, self.scene_bounds, no_op=not self.move_pc_in_bound
-        # )
-
+        
         # TODO: Vectorize
         pc_new = []
         rev_trans = []
         for _pc in pc:
-            a, b = mvt_utils.place_pc_in_cube(
+            a, b = utils.place_pc_in_cube(
                 _pc,
-                with_mean_or_bounds=self._place_with_mean,
-                scene_bounds=None if self._place_with_mean else self.scene_bounds,
+                with_mean_or_bounds=self.cfg.place_with_mean,
+                scene_bounds=None if self.cfg.place_with_mean else self.scene_bounds,
             )
             pc_new.append(a)
             rev_trans.append(b)
@@ -1045,7 +1019,7 @@ class RVTPPAgent:
 
         bs = len(pc)
         nc = self._net_mod.num_img
-        h = w = self._net_mod.img_size
+        h = w = self.cfg.img_size
 
         def forward_stage(stage, stage1_W_E_H_4x4=None, stage2_W_E_H_4x4=None):
             out, img, stage1_local_img, stage2_local_img = self._network(
@@ -1061,7 +1035,7 @@ class RVTPPAgent:
             out_key = ['out', 'stage1_local_out', 'stage2_local_out'][stage]
             out_stage = out[out_key]
 
-            q_trans, rot_q, grip_q, collision_q, y_q, pts, success_q = self.get_q(
+            q_trans, rot_q, grip_q, collision_q, y_q, pts = self.get_q(
                 out_stage, dims=(bs, nc, h, w)
             )
 
@@ -1085,7 +1059,7 @@ class RVTPPAgent:
                 0).repeat(bs, 1, 1).to(device=self._device)
             pred_W_E_H_4x4[:, :3, 3] = pred_wpt_local
 
-            if self._net_mod.mvt1.rot_offset and stage > 0:         # invert rotaion to be action
+            if self.cfg.rot_offset and stage > 0:         # invert rotaion to be action
                 prev_rot_3x3 = W_E_H_4x4[:, :3, :3]
                 delta_rot_3x3_inverse = self.get_R_3x3(
                     pred_rot_quat.astype(np.float32), apply_z_invert=False)
@@ -1141,73 +1115,7 @@ class RVTPPAgent:
                 pred_coll2[0].cpu().numpy(),
             )
         )
-        if True:
-            with torch.no_grad():
-                img, stage1_local_img, stage2_local_img = imgs
-
-                def get_wpt_img(wpt_local, stage1_W_E_H_4x4, stage2_W_E_H_4x4):
-                    wpt_img = self._net_mod.get_pt_loc_on_img(
-                        wpt_local.unsqueeze(1), W_E_H_4x4=None, stage=0)
-                    local_wpt_img1 = self._net_mod.get_pt_loc_on_img(
-                        wpt_local.unsqueeze(1), W_E_H_4x4=stage1_W_E_H_4x4, stage=1)
-                    local_wpt_img2 = self._net_mod.get_pt_loc_on_img(
-                        wpt_local.unsqueeze(1), W_E_H_4x4=stage2_W_E_H_4x4, stage=2)
-
-                    return torch.cat([wpt_img, local_wpt_img1, local_wpt_img2], dim=1)
-
-                if True:
-                    # gt_wpt_img = get_wpt_img(wpt_local, pred_W_E_H_4x4, pred_W_E_H_4x41)
-                    stage0_wpt_img = get_wpt_img(
-                        pred_wpt_local, pred_W_E_H_4x4, pred_W_E_H_4x41)
-                    stage1_wpt_img = get_wpt_img(
-                        pred_wpt_local1, pred_W_E_H_4x4, pred_W_E_H_4x41)
-                    stage2_wpt_img = get_wpt_img(
-                        pred_wpt_local2, pred_W_E_H_4x4, pred_W_E_H_4x41)
-
-                    data = {
-
-                        'img': img.cpu().numpy(),
-                        'local_img1': stage1_local_img.cpu().numpy(),
-                        'local_img2': stage2_local_img.cpu().numpy(),
-                        # 'gt_wpt_img': gt_wpt_img.cpu().numpy(),
-                        'stage0_wpt_img': stage0_wpt_img.cpu().numpy(),
-                        'stage1_wpt_img': stage1_wpt_img.cpu().numpy(),
-                        'stage2_wpt_img': stage2_wpt_img.cpu().numpy(),
-
-                    }
-                    # data.update(test_data)
-                    import pickle
-                    import time
-
-                    gloabl_img = data['img']  # .reshape(3,5,10,220,220,)
-                    local_img1 = data['local_img1']
-                    local_img2 = data['local_img2']
-                    imgs = [gloabl_img, local_img1, local_img2]
-                    img_size = 110
-                    num_img = 2
-                    bs = 1
-                    margin_size = 16
-
-                    img_show_list = []
-                    for img_stage in range(0, 3):
-                        img = imgs[img_stage]
-                        for i in range(bs):
-                            print(img.shape, bs)
-                            img_show = create_img_show(
-                                img[i], num_img=num_img, margin_size=margin_size)
-                            print(img_show.shape)
-                            # img_show_margin = np.pad(img_show, ((margin_size, margin_size), (margin_size, margin_size), (0, 0)), mode='constant', constant_values=255)
-                            img_show = (img_show/255-0.5)*2
-                            img_show_list.append(img_show)
-
-                    t = time.time()
-                    pathes = [
-                        "/mnt/home/yutian/VLM/RVT/rvt/data/pred_wpt_{}_stage{}.png".format(t, i) for i in range(3)]
-                    for img_show, path in zip(img_show_list, pathes):
-                        img_show = (img_show + 1) / 2
-                        cv2.imwrite(path, img_show[:, :, ::-1]*255)
-
-        return ActResult(continuous_action), ActResult(continuous_action1), ActResult(continuous_action2), pathes, False
+        return ActResult(continuous_action)
 
     def get_pred(
         self,

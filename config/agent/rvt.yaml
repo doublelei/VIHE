@@ -1,6 +1,9 @@
 # @package _group_
 name: "rvt"
 variant: "base"
+
+model_path: "/mnt/home/v_wangweiyao/workspace/baidu/personal-code/VLM/RVT/rvt/runs/100/rvt/base/all/models/model_last.pth"
+
 resume: ""
 add_depth: true
 add_proprio: true

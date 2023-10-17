@@ -247,7 +247,6 @@ def fill_replay(cfg, replay, task, task_replay_storage_folder, data_path, clip_m
     if disk_exist:
         replay.recover_from_disk(task, task_replay_storage_folder)
     else:
-        print(1111, data_path)
         for d_idx in range(cfg.num_demos):
             logging.info("Filling %s demo %d" % (task, d_idx))
             

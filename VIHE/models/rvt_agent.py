@@ -268,7 +268,7 @@ class RVTAgent:
         network: nn.Module,
         cameras,
         scene_bounds,
-        cos_dec_max_step,
+        cos_dec_max_step = 60000,
     ):
         self.cfg = cfg
 
@@ -462,7 +462,7 @@ class RVTAgent:
         return_out = {}
 
         obs, pcd = utils._preprocess_inputs(replay_sample, self.cameras)
-
+        
         with torch.no_grad():
             pc, img_feat = utils.get_pc_img_feat(
                 obs,
@@ -655,7 +655,8 @@ class RVTAgent:
         return return_out
 
     @torch.no_grad()
-    def act(self, observation: dict) -> ActResult:
+    
+    def act(self, step: int, observation: dict, deterministic: bool) -> ActResult:
 
         if self.cfg.add_lang:
             if observation.get("lang_goal_tokens", None) is not None:
@@ -675,7 +676,7 @@ class RVTAgent:
             )
         proprio = utils.stack_on_channel(observation["low_dim_state"])
         obs, pcd = utils._preprocess_inputs(observation, self.cameras)
-        pc, img_feat = pcd[0], obs[0][0]
+        pc, img_feat = utils.get_pc_img_feat(obs, pcd)
         pc, img_feat = utils.move_pc_in_bound(pc, img_feat, self.scene_bounds, no_op=not self.cfg.move_pc_in_bound)
         pc = [p.to(self._device).float() for p in pc]
         img_feat = [i.to(self._device).float() for i in img_feat]
@@ -696,7 +697,7 @@ class RVTAgent:
 
         bs = len(pc)
         nc = self._net_mod.num_img
-        h = w = self._net_mod.img_size
+        h = w = self.cfg.img_size
         dyn_cam_info = None
 
         out, _ = self._network(
@@ -724,7 +725,7 @@ class RVTAgent:
             )
         )
         
-        return ActResult(continuous_action), success
+        return ActResult(continuous_action)
 
     def get_pred(
         self,

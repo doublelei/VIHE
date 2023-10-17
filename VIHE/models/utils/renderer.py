@@ -332,7 +332,7 @@ class BoxRenderer:
         :param compositor:
         """
         self.device = device
-        self.cfg.img_size = img_size
+        self.img_size = img_size
         self.radius = radius
         self.points_per_pixel = points_per_pixel
         self.compositor = compositor
@@ -342,12 +342,12 @@ class BoxRenderer:
         self.init()
 
     def init(self):
-        h, w = self.cfg.img_size
+        h, w = self.img_size
         assert h == w
 
         # used for creating the fixed and dynamic renderers
         self._raster_settings = PointsRasterizationSettings(
-            image_size=self.cfg.img_size,
+            image_size=self.img_size,
             radius=self.radius,
             points_per_pixel=self.points_per_pixel,
             bin_size=0,
@@ -558,7 +558,7 @@ class BoxRenderer:
             fix_cam = self._get_fix_cam()
             # (num_cam, bs * np, 2)
             pt_scr = fix_cam.transform_points_screen(
-                pt.view(-1, 3), image_size=self.cfg.img_size
+                pt.view(-1, 3), image_size=self.img_size
             )[..., 0:2]
 
             if len(fix_cam) == 1:
@@ -566,7 +566,7 @@ class BoxRenderer:
 
             pt_scr = torch.transpose(pt_scr, 0, 1)
             # transform from camera screen to image index
-            h, w = self.cfg.img_size
+            h, w = self.img_size
             # (bs * np, num_img, 2)
             fix_pt_img = pt_scr - torch.tensor((1 / w, 1 / h)).to(pt_scr.device)
             fix_pt_img = fix_pt_img.view(bs, np, len(fix_cam), 2)
@@ -579,14 +579,14 @@ class BoxRenderer:
                 dyn_cam = self._get_dyn_cam(_dyn_cam_info)
                 # (num_cam, np, 2)
                 _pt_scr = dyn_cam.transform_points_screen(
-                    _pt, image_size=self.cfg.img_size
+                    _pt, image_size=self.img_size
                 )[..., 0:2]
                 if len(dyn_cam) == 1:
                     _pt_scr = _pt_scr.unsqueeze(0)
 
                 _pt_scr = torch.transpose(_pt_scr, 0, 1)
                 # transform from camera screen to image index
-                h, w = self.cfg.img_size
+                h, w = self.img_size
                 # (np, num_img, 2)
                 _dyn_pt_img = _pt_scr - torch.tensor((1 / w, 1 / h)).to(_pt_scr.device)
                 dyn_pt_img.append(_dyn_pt_img.unsqueeze(0))
@@ -615,10 +615,10 @@ class BoxRenderer:
         if not dyn_cam_info is None:
             num_dyn_img = dyn_cam_info[0][0].shape[0]
         assert nc == self.num_img
-        assert self.cfg.img_size == (h, w)
+        assert self.img_size == (h, w)
 
         if self._pts is None:
-            res = self.cfg.img_size[0]
+            res = self.img_size[0]
             pts = torch.linspace(-1 + (1 / res), 1 - (1 / res), res).to(hm.device)
             pts = torch.cartesian_prod(pts, pts, pts)
             self._pts = pts
@@ -679,7 +679,7 @@ class BoxRenderer:
             num_dyn_img = dyn_cam_info[0][0].shape[0]
             assert len(dyn_cam_info) == 1
         assert nc == self.num_img
-        assert self.cfg.img_size == (h, w)
+        assert self.img_size == (h, w)
 
         pts_hm, pts = self.get_feat_frm_hm_cube(hm, fix_cam, dyn_cam_info)
         # (bs, np, nc)

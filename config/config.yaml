@@ -1,17 +1,24 @@
 defaults:
   - agent: peract
+
 with_eval: false
 exp_id: "test"
-tasks: ["close_jar"]
+tasks: ["push_buttons"]
 device: [0]
 epochs: 20
-num_workers: 0
-num_demo: 1
 sample_distribution_mode: "transition_uniform"
 replay_buffer_sample: "uniform"
 train_replay_dir: "/mnt/data/yutian/RVT/replay/replay_train_tem"
 log_dir: "runs"
 
+eval:
+  headless: true
+  datafolder: "/mnt/data/yutian/peract/test/"
+  episode_length: 25
+  episodes: 10
+  save_video: false
+  log_name: "last"
+  replay_ground_truth: false
 dataset:
   cameras: ["front", "left_shoulder", "right_shoulder", "wrist"]
   batch_size: 1
@@ -31,7 +38,7 @@ dataset:
   train_replay_dir: "/mnt/data/yutian/RVT/replay/replay_train_tem"
   eposides_folder_train: "/mnt/data/yutian/peract/train/{}/all_variations/episodes"
   eposides_folder_test: "/mnt/data/yutian/peract/test/{}/all_variations/episodes"
-  num_demos: 10
+  num_demos: 1
   keypoint_method: 'heuristic'
   replay_buffer_sample_policy: 'uniform'
   replay_buffer_sample_freq: 10
@@ -40,4 +47,4 @@ dataset:
   sample_distribution_mode: 'task_uniform'
   scene_bounds: [-0.3, -0.5, 0.6, 0.7, 0.5, 1.6]
   rotation_resolution: 5
-  refresh_replay: False
+  refresh_replay: True

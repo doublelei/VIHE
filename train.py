@@ -1,15 +1,10 @@
-# Copyright (c) 2022-2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
-#
-# Licensed under the NVIDIA Source Code License [see LICENSE for details].
-
-import os
 import time
 import tqdm
 import random
 import subprocess
-
+import hydra
+from omegaconf import DictConfig, OmegaConf
 from collections import defaultdict
-from contextlib import redirect_stdout
 
 import torch
 import torch.multiprocessing as mp
@@ -17,18 +12,15 @@ import torch.distributed as dist
 from torch.nn.parallel import DistributedDataParallel as DDP
 
 
-import rvt.utils.ddp_utils as ddp_utils
 from VIHE.models.utils.mvt import MVT
 from VIHE.models.utils.mvtpp import MVTPP
 from VIHE.data.get_dataset import get_dataset
-
-
+from VIHE.utils import get_logdir, get_tasks, dump_log, setup_ddp
 from VIHE.logger.tensorboardmanager import TensorboardManager
-from VIHE.models.utils.utils import RLBENCH_TASKS, REAL_TASKS, load_agent
-from VIHE.models.rvt_agent import RVTAgent, print_loss_log, print_eval_log
+from VIHE.models.utils.utils import load_agent, save_agent
+from VIHE.models.rvt_agent import RVTAgent, print_loss_log
 from VIHE.models.rvtpp_agent import RVTPPAgent
-import hydra
-from omegaconf import DictConfig, OmegaConf
+
 
 
 def train(agent, dataset, training_iterations, rank=0):
@@ -76,64 +68,12 @@ def train(agent, dataset, training_iterations, rank=0):
     return log
 
 
-def save_agent(agent, path, epoch):
-    model = agent._network
-    optimizer = agent._optimizer
-    lr_sched = agent._lr_sched
-
-    if isinstance(model, DDP):
-        model_state = model.module.state_dict()
-    else:
-        model_state = model.state_dict()
-
-    torch.save(
-        {
-            "epoch": epoch,
-            "model_state": model_state,
-            "optimizer_state": optimizer.state_dict(),
-            "lr_sched_state": lr_sched.state_dict(),
-        },
-        path,
-    )
-
-
-def get_tasks(tasks):
-    if tasks == "all":
-        tasks = RLBENCH_TASKS
-    if tasks == "real_all":
-        tasks = REAL_TASKS
-    elif tasks == 'split':
-        tasks = SPLIT_RLBENCH_TASKS
-    return tasks
-
-
-def get_logdir(cfg):
-    if isinstance(cfg.tasks, str):
-        tasks = cfg.tasks
-    else:
-        tasks = ''.join(cfg.tasks)
-    log_dir = os.path.join(cfg.log_dir, str(cfg.num_demo),
-                           cfg.exp_id, cfg.agent.variant, tasks)
-    os.makedirs(log_dir, exist_ok=True)
-    model_dir = os.path.join(log_dir, "models")
-    os.makedirs(model_dir, exist_ok=True)
-    log_log_dir = os.path.join(log_dir, "logs")
-    os.makedirs(log_log_dir, exist_ok=True)
-    return log_dir
-
-
-def dump_log(cfg):
-    with open(f"{cfg.log_dir}/config.yaml", "w") as yaml_file:
-        OmegaConf.save(cfg, yaml_file)
-
-
-
 def experiment(rank, cfg, devices, port):
     device = devices[rank]
     device = f"cuda:{device}"
     ddp = len(devices) > 1
     if ddp:
-        ddp_utils.setup(rank, world_size=len(devices), port=port)
+        setup_ddp(rank, world_size=len(devices), port=port)
         print(f"Running DDP on rank {rank}.")
 
     if rank == 0:
@@ -155,7 +95,7 @@ def experiment(rank, cfg, devices, port):
     torch.cuda.set_device(device)
     torch.cuda.empty_cache()
     if cfg.agent.name == "rvt":
-        
+
         rvt = MVT(cfg.agent, renderer_device=device).to(device)
         if ddp:
             rvt = DDP(rvt, device_ids=[device], find_unused_parameters=True)

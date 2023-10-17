@@ -396,7 +396,6 @@ def get_num_feat(cfg):
 
 
 def load_agent(agent_path, agent=None, only_epoch=False):
-    print(agent_path)
     checkpoint = torch.load(agent_path, map_location="cpu")
     epoch = checkpoint["epoch"]
 
@@ -531,3 +530,25 @@ def compare_param_groups(loaded_state_dict, optimizer):
         print("The number of parameter groups does not match!")
     else:
         print("The number of parameter groups matches perfectly.")
+
+
+
+def save_agent(agent, path, epoch):
+    model = agent._network
+    optimizer = agent._optimizer
+    lr_sched = agent._lr_sched
+
+    if isinstance(model, DDP):
+        model_state = model.module.state_dict()
+    else:
+        model_state = model.state_dict()
+
+    torch.save(
+        {
+            "epoch": epoch,
+            "model_state": model_state,
+            "optimizer_state": optimizer.state_dict(),
+            "lr_sched_state": lr_sched.state_dict(),
+        },
+        path,
+    )
