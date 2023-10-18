@@ -1,22 +1,18 @@
 # Adapted from https://github.com/stepjam/RLBench/blob/master/rlbench/utils.py
 
-from rlbench.demo import Demo
-from typing import List
+
 import logging
 import os
 import pickle
 import numpy as np
-from PIL import Image
 
-from rlbench.backend.utils import image_to_float_array
-from pyrep.objects import VisionSensor
-from rvt.utils.peract_utils import SCENE_BOUNDS_REAL
-import os
-import pickle
-import numpy as np
 from PIL import Image
+from typing import List
+
 from rlbench.backend.observation import Observation
 from rlbench.backend.utils import image_to_float_array
+from rlbench.demo import Demo
+
 from pyrep.objects import VisionSensor
 
 
@@ -38,13 +34,13 @@ LOW_DIM_PICKLE = 'low_dim_obs.pkl'
 VARIATION_NUMBER_PICKLE = 'variation_number.pkl'
 
 DEPTH_SCALE = 2**24 - 1
-x_min, y_min, z_min, x_max, y_max, z_max = SCENE_BOUNDS_REAL
 # functions
 
 REMOVE_KEYS = ['joint_velocities', 'joint_positions', 'joint_forces',
                'gripper_open', 'gripper_pose',
                'gripper_joint_positions', 'gripper_touch_forces',
                'task_low_dim_state', 'misc']
+
 
 def _is_stopped(demo, i, obs, stopped_buffer, delta=0.1):
     next_is_not_final = i == (len(demo) - 2)
@@ -278,13 +274,12 @@ def modify_intrinsic_matrix(K, original_shape, new_shape):
     return K_new
 
 
-
 def extract_obs(obs: Observation,
                 cameras,
                 t: int = 0,
                 channels_last: bool = False,
-                episode_length: int = 10, 
-                relative = False):
+                episode_length: int = 10,
+                relative=False):
     obs.joint_velocities = None
     grip_mat = obs.gripper_matrix
     grip_pose = obs.gripper_pose
@@ -300,11 +295,11 @@ def extract_obs(obs: Observation,
     obs_dict = vars(obs)
     obs_dict = {k: v for k, v in obs_dict.items() if v is not None}
 
-    print(obs.gripper_open, obs.gripper_joint_positions)
+    # print(obs.gripper_open, obs.gripper_joint_positions)
     robot_state = np.array([
         obs.gripper_open,
-        obs.gripper_joint_positions[0][0],
-        obs.gripper_joint_positions[0][1]])
+        obs.gripper_joint_positions[0],
+        obs.gripper_joint_positions[1]])
     # remove low-level proprioception variables that are not needed
     obs_dict = {k: v for k, v in obs_dict.items()
                 if k not in REMOVE_KEYS}
@@ -313,7 +308,7 @@ def extract_obs(obs: Observation,
         # swap channels from last dim to 1st dim
         obs_dict = {k: np.transpose(
             v, [2, 0, 1]) if v.ndim == 3 else np.expand_dims(v, 0)
-                    for k, v in obs_dict.items() if type(v) == np.ndarray or type(v) == list}
+            for k, v in obs_dict.items() if type(v) == np.ndarray or type(v) == list}
     else:
         # add extra dim to depth data
         obs_dict = {k: v if v.ndim == 3 else np.expand_dims(v, -1)
@@ -322,13 +317,16 @@ def extract_obs(obs: Observation,
     obs_dict['low_dim_state'] = np.array(robot_state, dtype=np.float32)
 
     # binary variable indicating if collisions are allowed or not while planning paths to reach poses
-    obs_dict['ignore_collisions'] = np.array([obs.ignore_collisions], dtype=np.float32)
+    obs_dict['ignore_collisions'] = np.array(
+        [obs.ignore_collisions], dtype=np.float32)
     for (k, v) in [(k, v) for k, v in obs_dict.items() if 'point_cloud' in k]:
         obs_dict[k] = v.astype(np.float32)
 
     for camera_name in cameras:
-        obs_dict['%s_camera_extrinsics' % camera_name] = obs.misc['%s_camera_extrinsics' % camera_name]
-        obs_dict['%s_camera_intrinsics' % camera_name] = obs.misc['%s_camera_intrinsics' % camera_name]
+        obs_dict['%s_camera_extrinsics' %
+                 camera_name] = obs.misc['%s_camera_extrinsics' % camera_name]
+        obs_dict['%s_camera_intrinsics' %
+                 camera_name] = obs.misc['%s_camera_intrinsics' % camera_name]
 
     # add timestep to low_dim_state
     if relative:

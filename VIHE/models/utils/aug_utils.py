@@ -1,7 +1,3 @@
-# Copyright (c) 2022-2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
-#
-# Licensed under the NVIDIA Source Code License [see LICENSE for details].
-
 # Adapted from: https://github.com/stepjam/ARM/blob/main/arm/utils.py
 # utils functions for rotation augmentation
 import torch

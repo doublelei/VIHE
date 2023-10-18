@@ -1,0 +1,9 @@
+[submodule "VIHE/lib/PyRep"]
+	path = VIHE/lib/PyRep
+	url = https://github.com/doublelei/PyRep.git
+[submodule "VIHE/lib/RLbench"]
+	path = VIHE/lib/RLbench
+	url = https://github.com/doublelei/RLBench.git
+[submodule "VIHE/lib/YARR"]
+	path = VIHE/lib/YARR
+	url = https://github.com/doublelei/YARR.git

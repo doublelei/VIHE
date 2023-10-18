@@ -6,16 +6,17 @@ import numpy as np
 from typing import List
 
 import clip
-import peract_colab.arm.utils as utils
 
+from VIHE.models.utils import aug_utils
+from VIHE.data.utils import get_stored_demo, keypoint_discovery, extract_obs
 from yarr.utils.observation_type import ObservationElement
 from yarr.replay_buffer.replay_buffer import ReplayElement, ReplayBuffer
 from yarr.replay_buffer.uniform_replay_buffer import UniformReplayBuffer
+
 from rlbench.backend.observation import Observation
 from rlbench.demo import Demo
 
-from VIHE.data.utils import get_stored_demo, keypoint_discovery
-from rvt.libs.peract.helpers.utils import extract_obs
+
 EPISODE_FOLDER = "episode%d"
 # the pkl file that contains language goals for each demonstration
 VARIATION_DESCRIPTIONS_PKL = "variation_descriptions.pkl"
@@ -95,10 +96,10 @@ def _get_action(
     voxel_sizes: List[int],
     rotation_resolution: int,
 ):
-    quat = utils.normalize_quaternion(obs_tp1.gripper_pose[3:])
+    quat = aug_utils.normalize_quaternion(obs_tp1.gripper_pose[3:])
     if quat[-1] < 0:
         quat = -quat
-    disc_rot = utils.quaternion_to_discrete_euler(quat, rotation_resolution)
+    disc_rot = aug_utils.quaternion_to_discrete_euler(quat, rotation_resolution)
     attention_coordinate = obs_tp1.gripper_pose[:3]
     trans_indicies, attention_coordinates = [], []
     bounds = np.array(rlbench_scene_bounds)
@@ -106,7 +107,7 @@ def _get_action(
     for depth, vox_size in enumerate(
         voxel_sizes
     ):  # only single voxelization-level is used in PerAct
-        index = utils.point_to_voxel_index(
+        index = aug_utils.point_to_voxel_index(
             obs_tp1.gripper_pose[:3], vox_size, bounds)
         trans_indicies.extend(index.tolist())
         res = (bounds[3:] - bounds[:3]) / vox_size
@@ -223,7 +224,7 @@ def _add_keypoints_to_replay(
         sample_frame = keypoint
 
     obs_dict_tp1 = extract_obs(obs_tp1, cfg.cameras, t=k + 1 -
-                               next_keypoint_idx, prev_action=prev_action, episode_length=25)
+                               next_keypoint_idx, episode_length=25)
     obs_dict_tp1["lang_goal_embs"] = lang_embs
     obs_dict_tp1.pop("wrist_world_to_cam", None)
     obs_dict_tp1.update(final_obs)
