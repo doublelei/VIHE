@@ -10,12 +10,6 @@ This is the official demo code for [VIHE](https://vihe-3d.github.io/), a transfo
 <!-- If you find this work useful in your research, please cite using the following BibTeX:
 
 ```bibtex
-@article{huang2023voxposer,
-      title={VoxPoser: Composable 3D Value Maps for Robotic Manipulation with Language Models},
-      author={Huang, Wenlong and Wang, Chen and Zhang, Ruohan and Li, Yunzhu and Wu, Jiajun and Fei-Fei, Li},
-      journal={arXiv preprint arXiv:2307.05973},
-      year={2023}
-    }
 ``` -->
 
 <img src="media/overview.gif"/>
@@ -141,7 +135,7 @@ data
 
 
 ## Pre-trained Models
-You can download the pre-trained VIHE on RLbench from [this link](https://drive.google.com/drive/folders/1n_vBXEL2lWmJTNxwQIuI_NinAGGhby5m?usp=drive_link). Then, place the models under `outputs/VIHE/model_last.pth`
+You can download the pre-trained VIHE on RLbench from [this link](https://drive.google.com/file/d/1fkcQuZ7CFTmcZrzlEvETIbSf6Yb-96qw/view?usp=sharing). Then, place the models under `outputs/VIHE/model_last.pth`
 
 ## Training and Evaluation
 ```bash
