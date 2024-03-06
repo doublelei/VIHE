@@ -101,7 +101,7 @@ mkdir -p data/RLbench/replay/train
 python tools/generate_replay.py dataset.refresh_replay=True
 ```
 ### Preparing Real-world Dataset
-For real-world data, you can download the pre-generated replay from [this link](https://drive.google.com/drive/folders/1n_vBXEL2lWmJTNxwQIuI_NinAGGhby5m?usp=drive_link). Then, place the dataset under `data/Real/train`. Noted that only the training set is provided. You can split the training set into training and validation sets by yourself, and evaluate the model on the real-world environment.
+For real-world data, you can download the pre-generated replay from [this link](https://drive.google.com/file/d/1OWPfTBxGPKBPiCOIGQGWSH6GkRLBmQ6F/view?usp=sharing). Then, place the dataset under `data/Real/train`. Noted that only the training set is provided. You can split the training set into training and validation sets by yourself, and evaluate the model on the real-world environment.
 
 
 ### Data Folder Structure
