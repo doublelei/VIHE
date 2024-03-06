@@ -83,14 +83,14 @@ pip install -e VIHE/lib/YARR
  
 ## Data Preparation
 ### Preparing RLbench Dataset
-#### Option 1 (Recommended): Downloading Pre-generated Replay Buffers
+#### Option 1 (Recommended): Downloading Pre-generated Replay Buffers from [RVT](https://github.com/NVlabs/RVT)
 - Download the replay buffer:
   - For all tasks: Download [replay.tar.xz](https://drive.google.com/file/d/1wOkLk8ymsp3TCFWOPOQLZZJ4OIZXRUjw/view?usp=drive_link)
   - For individual tasks: Visit [this link](https://drive.google.com/drive/folders/1n_vBXEL2lWmJTNxwQIuI_NinAGGhby5m?usp=drive_link)
 - Uncompress the replay buffer(s) and place it under `data/RLbench/replay/xxx`, where `xxx` is either `train` or `val`.
 
 #### Option 2: Generate or Download the raw data, then create the replay buffer yourself
-- To download the pre-generated datasets, download from [this link](https://drive.google.com/drive/folders/0B2LlLwoO3nfZfkFqMEhXWkxBdjJNNndGYl9uUDQwS1pfNkNHSzFDNGwzd1NnTmlpZXR1bVE?resourcekey=0-jRw5RaXEYRLe2W6aNrNFEQ).
+- To download the pre-generated raw datasets, download from [PerAct](https://drive.google.com/drive/folders/0B2LlLwoO3nfZfkFqMEhXWkxBdjJNNndGYl9uUDQwS1pfNkNHSzFDNGwzd1NnTmlpZXR1bVE?resourcekey=0-jRw5RaXEYRLe2W6aNrNFEQ).
 - To generate raw datasets, execute the following commands:
 ```bash
 sh scripts/generate_dataset.sh
@@ -148,4 +148,9 @@ $ python tools/eval.py agent=<agent> agent.model_path=<model_path>
 ```
 
 
+## Acknowledgement
+We sincerely thank the authors of the following repositories for sharing their code.
 
+- [PerAct](https://github.com/peract/peract)
+- [RLBench](https://github.com/stepjam/RLBench/tree/master)
+- [RVT](https://github.com/NVlabs/RVT)
