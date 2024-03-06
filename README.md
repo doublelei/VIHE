@@ -139,12 +139,12 @@ You can download the pre-trained VIHE on RLbench from [this link](https://drive.
 
 ## Training and Evaluation
 ```bash
-$ python train.py agent=<agent>
+$ python tools/train.py agent=<agent>
 ```
 The training script will automatically save the model and logs to `outputs/[Date]/[Time]/'
 
 ```bash
-$ python eval.py agent=<agent> agent.model_path=<model_path>
+$ python tools/eval.py agent=<agent> agent.model_path=<model_path>
 ```
 
 
