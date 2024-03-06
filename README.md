@@ -4,7 +4,7 @@
 
 [Weiyao Wang](https://wangweiyao.github.io/about-me/), [Yutian Lei](https://doublelei.me/), [Shiyu Jin](https://scholar.google.com/citations?user=GdYgso8AAAAJ&hl=en), [Gregory D. Hager](https://www.cs.jhu.edu/hager/), [Liangjun Zhang](https://www.cs.unc.edu/~zlj/) 
 
-This is the official demo code for [VIHE](https://vihe-3d.github.io/),  a transformer-based imitation learning agent that leverages rendered virtual in-hand views for accruate 6-DoF action predictions.
+This is the official demo code for [VIHE](https://vihe-3d.github.io/), a transformer-based imitation learning agent that leverages rendered virtual in-hand views for accruate 6-DoF action predictions.
 
 
 <!-- If you find this work useful in your research, please cite using the following BibTeX:
@@ -106,8 +106,8 @@ sh scripts/generate_dataset.sh
 mkdir -p data/RLbench/replay/train 
 python tools/generate_replay.py dataset.refresh_replay=True
 ```
-### Preparing Real-world Datasettar
-For real-world data, you can download the dataset from [this link](https://drive.google.com/drive/folders/1n_vBXEL2lWmJTNxwQIuI_NinAGGhby5m?usp=drive_link). Then, place the dataset under `data/Real/train`. Noted that only the training set is provided. You can split the training set into training and validation sets by yourself, and evaluate the model on the real-world environment.
+### Preparing Real-world Dataset
+For real-world data, you can download the pre-generated replay from [this link](https://drive.google.com/drive/folders/1n_vBXEL2lWmJTNxwQIuI_NinAGGhby5m?usp=drive_link). Then, place the dataset under `data/Real/train`. Noted that only the training set is provided. You can split the training set into training and validation sets by yourself, and evaluate the model on the real-world environment.
 
 
 ### Data Folder Structure
@@ -140,21 +140,14 @@ data
 
 
 
+## Pre-trained Models
+You can download the pre-trained VIHE on RLbench from [this link](https://drive.google.com/drive/folders/1n_vBXEL2lWmJTNxwQIuI_NinAGGhby5m?usp=drive_link). Then, place the models under `outputs/VIHE/model_last.pth`
 
-
-### Preparing RLbench Dataset
-
-
-
-## Usage
-
-```bash
-$ python generate_data.py 
-```
-
+## Training and Evaluation
 ```bash
 $ python train.py agent=<agent>
 ```
+The training script will automatically save the model and logs to `outputs/[Date]/[Time]/'
 
 ```bash
 $ python eval.py agent=<agent> agent.model_path=<model_path>

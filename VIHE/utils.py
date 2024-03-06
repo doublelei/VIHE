@@ -284,14 +284,12 @@ def get_logdir(cfg):
         tasks = cfg.tasks
     else:
         tasks = ''.join(cfg.tasks)
-    log_dir = os.path.join(cfg.log_dir, str(cfg.dataset.num_demos),
-                           cfg.exp_id, cfg.agent.variant, tasks)
-    os.makedirs(log_dir, exist_ok=True)
-    model_dir = os.path.join(log_dir, "models")
+    os.makedirs(cfg.log_dir, exist_ok=True)
+    model_dir = os.path.join(cfg.log_dir, "models")
     os.makedirs(model_dir, exist_ok=True)
-    log_log_dir = os.path.join(log_dir, "logs")
+    log_log_dir = os.path.join(cfg.log_dir, "logs")
     os.makedirs(log_log_dir, exist_ok=True)
-    return log_dir
+    return cfg.log_dir
 
 
 def get_tasks(tasks):
