@@ -3,7 +3,7 @@ name: "vihe"
 variant: "base"
 resume: ""
 
-model_path: "/mnt/home/yutian/VLM/RVT/rvt/runs/20/rvtpp_real_real_all_step10/rot_offset/real_all/models/model_50.pth"
+model_path: ""
 
 add_depth: true
 add_proprio: true

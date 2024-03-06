@@ -1,9 +1,22 @@
-VIHE
+## VIHE: Transformer-Based 3D Object Manipulation Using Virtual In-Hand View
 
-[**VIHE: Transformer-Based 3D Object Manipulation Using Virtual In-Hand View**](https://vihe-3d.github.io/)  
+#### [[Project Page]](https://vihe-3d.github.io/) [[Paper]](*.pdf) [[Video]]()
+
 [Weiyao Wang](https://wangweiyao.github.io/about-me/), [Yutian Lei](https://doublelei.me/), [Shiyu Jin](https://scholar.google.com/citations?user=GdYgso8AAAAJ&hl=en), [Gregory D. Hager](https://www.cs.jhu.edu/hager/), [Liangjun Zhang](https://www.cs.unc.edu/~zlj/) 
 
-VIHE is a transformer-based imitation learning agent that leverages rendered virtual in-hand views for accruate 6-DoF action predictions.
+This is the official demo code for [VIHE](https://vihe-3d.github.io/),  a transformer-based imitation learning agent that leverages rendered virtual in-hand views for accruate 6-DoF action predictions.
+
+
+<!-- If you find this work useful in your research, please cite using the following BibTeX:
+
+```bibtex
+@article{huang2023voxposer,
+      title={VoxPoser: Composable 3D Value Maps for Robotic Manipulation with Language Models},
+      author={Huang, Wenlong and Wang, Chen and Zhang, Ruohan and Li, Yunzhu and Wu, Jiajun and Fei-Fei, Li},
+      journal={arXiv preprint arXiv:2307.05973},
+      year={2023}
+    }
+``` -->
 
 <img src="media/overview.gif"/>
 
@@ -15,20 +28,21 @@ bash scripts/install.sh
 
 Or you can follow the instructions below to install the dependencies manually.
 
-### Install VIHE
-- **Step 1 (Optional):**
+### **Step 1 (Optional):**
 We recommend using [conda](https://docs.conda.io/en/latest/miniconda.html) and creating a virtual environment.
 ```bash
 conda create --name vihe python=3.8
 conda activate vihe
 ```
 
-- **Step 2:** Install PyTorch. Make sure the PyTorch version is compatible with the CUDA version. One recommended version compatible with CUDA 11.1 and PyTorch3D can be installed with the following command. More instructions to install PyTorch can be found [here](https://pytorch.org/).
+### **Step 2:** 
+Install PyTorch. Make sure the PyTorch version is compatible with the CUDA version. One recommended version compatible with CUDA 11.1 and PyTorch3D can be installed with the following command. More instructions to install PyTorch can be found [here](https://pytorch.org/).
 ```
 conda install pytorch==1.12.1 torchvision==0.13.1 torchaudio==0.12.1 cudatoolkit=11.3 -c pytorch
 ```
 
-- **Step 3:** Install PyTorch3D. One recommended version that is compatible with the rest of the library can be installed as follows. Note that this might take some time. For more instructions visit [here](https://github.com/facebookresearch/pytorch3d/blob/main/INSTALL.md).
+### **Step 3:** 
+Install PyTorch3D. One recommended version that is compatible with the rest of the library can be installed as follows. Note that this might take some time. For more instructions visit [here](https://github.com/facebookresearch/pytorch3d/blob/main/INSTALL.md).
 ```
 conda install -c fvcore -c iopath -c conda-forge fvcore iopath
 curl -LO https://github.com/NVIDIA/cub/archive/1.10.0.tar.gz
@@ -42,7 +56,8 @@ pip install black usort flake8 flake8-bugbear flake8-comprehensions
 FORCE_CUDA=1 pip install 'git+https://github.com/facebookresearch/pytorch3d.git@stable'
 ```
 
-- **Step 4:** Install CoppeliaSim. PyRep requires version **4.1** of CoppeliaSim. Download and unzip CoppeliaSim: 
+### **Step 4:** 
+Install CoppeliaSim. PyRep requires version **4.1** of CoppeliaSim. Download and unzip CoppeliaSim: 
 - [Ubuntu 16.04](https://www.coppeliarobotics.com/files/CoppeliaSim_Edu_V4_1_0_Ubuntu16_04.tar.xz)
 - [Ubuntu 18.04](https://www.coppeliarobotics.com/files/CoppeliaSim_Edu_V4_1_0_Ubuntu18_04.tar.xz)
 - [Ubuntu 20.04](https://www.coppeliarobotics.com/files/CoppeliaSim_Edu_V4_1_0_Ubuntu20_04.tar.xz)
@@ -57,7 +72,8 @@ export DISLAY=:1.0
 ```
 Remember to source your .bashrc (`source ~/.bashrc`) or  .zshrc (`source ~/.zshrc`) after this.
 
-- **Step 5:** Clone the repository with the submodules using the following command.
+### **Step 5:** 
+Clone the repository with the submodules using the following command.
 
 ```
 git clone --recurse-submodules https://github.com/doublelei/VIHE.git && cd VIHE && git submodule update --init
@@ -71,10 +87,62 @@ pip install -e VIHE/lib/RLbench
 pip install -e VIHE/lib/YARR 
 ``` 
  
-- **Step 6:** Download dataset.
-    - For experiments on RLBench, we use [pre-generated dataset](https://drive.google.com/drive/folders/0B2LlLwoO3nfZfkFqMEhXWkxBdjJNNndGYl9uUDQwS1pfNkNHSzFDNGwzd1NnTmlpZXR1bVE?resourcekey=0-jRw5RaXEYRLe2W6aNrNFEQ) provided by [PerAct](https://github.com/peract/peract#download). Please download and place them under `RVT/rvt/data/xxx` where `xxx` is either `train`, `test`, or `val`.  
+## Data Preparation
+### Preparing RLbench Dataset
+#### Option 1 (Recommended): Downloading Pre-generated Replay Buffers
+- Download the replay buffer:
+  - For all tasks: Download [replay.tar.xz](https://drive.google.com/file/d/1wOkLk8ymsp3TCFWOPOQLZZJ4OIZXRUjw/view?usp=drive_link)
+  - For individual tasks: Visit [this link](https://drive.google.com/drive/folders/1n_vBXEL2lWmJTNxwQIuI_NinAGGhby5m?usp=drive_link)
+- Uncompress the replay buffer(s) and place it under `data/RLbench/replay/xxx`, where `xxx` is either `train` or `val`.
 
-    - Additionally, we use the same dataloader as PerAct, which is based on [YARR](https://github.com/stepjam/YARR). YARR creates a replay buffer on the fly which can increase the startup time. We provide an option to directly load the replay buffer from the disk. We recommend using the pre-generated replay buffer (98 GB) as it reduces the startup time. You can either download [replay.tar.xz](https://drive.google.com/file/d/1wOkLk8ymsp3TCFWOPOQLZZJ4OIZXRUjw/view?usp=drive_link) which contains the replay buffer for all tasks or replay buffer for [indidual tasks](https://drive.google.com/drive/folders/1n_vBXEL2lWmJTNxwQIuI_NinAGGhby5m?usp=drive_link). After downloading, uncompress the replay buffer(s) (for example using the command `tar -xf replay.tar.xz`) and place it under `RVT/rvt/replay/replay_xxx` where `xxx` is either `train` or `val`. Note that is useful only if you want to train RVT from scratch and not needed if you want to evaluate the pre-trained model.
+#### Option 2: Generate or Download the raw data, then create the replay buffer yourself
+- To download the pre-generated datasets, download from [this link](https://drive.google.com/drive/folders/0B2LlLwoO3nfZfkFqMEhXWkxBdjJNNndGYl9uUDQwS1pfNkNHSzFDNGwzd1NnTmlpZXR1bVE?resourcekey=0-jRw5RaXEYRLe2W6aNrNFEQ).
+- To generate raw datasets, execute the following commands:
+```bash
+sh scripts/generate_dataset.sh
+```
+- After generating or downloading the raw datasets, you can create the replay buffer using the following command:
+```bash
+mkdir -p data/RLbench/replay/train 
+python tools/generate_replay.py dataset.refresh_replay=True
+```
+### Preparing Real-world Datasettar
+For real-world data, you can download the dataset from [this link](https://drive.google.com/drive/folders/1n_vBXEL2lWmJTNxwQIuI_NinAGGhby5m?usp=drive_link). Then, place the dataset under `data/Real/train`. Noted that only the training set is provided. You can split the training set into training and validation sets by yourself, and evaluate the model on the real-world environment.
+
+
+### Data Folder Structure
+Finally, the data folder should look like this:
+```
+data
+|—— RLbench
+|   |—— Raw
+|   |   |—— train
+|   |   |   |—— close_jar
+|   |   |   |   |—— all_variations
+|   |   |   |   |   |—— episodes
+|   |   |   |   |   |   |—— episode0
+|   |   |   |   |   |   |—— ...
+|   |   |   |   |   |—— ...
+|   |   |   |   |—— ...
+|   |   |   |—— ...
+|   |   |—— val (same as train)
+|   |   |—— test (same as train)
+|   |—— Replay
+|   |   |—— train
+|   |   |   |—— close_jar
+|   |   |   |   |—— 0.replay
+|   |   |   |   |—— ...
+|   |   |   |—— ...
+|   |   |—— val (same as train, optional)
+|—— Real
+|   |—— Replay (same as RLbench/Replay)
+```
+
+
+
+
+
+### Preparing RLbench Dataset
 
 
 
