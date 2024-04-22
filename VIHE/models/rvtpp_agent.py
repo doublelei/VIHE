@@ -1115,7 +1115,7 @@ class RVTPPAgent:
                 pred_coll2[0].cpu().numpy(),
             )
         )
-        return ActResult(continuous_action)
+        return ActResult(continuous_action2)
 
     def get_pred(
         self,
