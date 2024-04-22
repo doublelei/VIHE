@@ -909,7 +909,7 @@ class RVTPPAgent:
                         0).repeat(bs, 1, 1).to(device=self._device)
                     pred_W_E_H_4x4[:, :3, 3] = pred_wpt_local
 
-                    if self._net_mod.mvt1.rot_offset and stage > 0:         # invert rotaion to be action
+                    if self.cfg.rot_offset and stage > 0:         # invert rotaion to be action
                         prev_rot_3x3 = W_E_H_4x4[:, :3, :3]
                         delta_rot_3x3_inverse = self.get_R_3x3(
                             pred_rot_quat.astype(np.float32), apply_z_invert=False)
